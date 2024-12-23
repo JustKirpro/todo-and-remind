@@ -1,0 +1,915 @@
+openapi: 3.0.0
+info:
+  title: ToDo & Remind API
+  version: 1.0.0
+servers:
+- url: https://d5d0oc58oo5e7e0ikbp7.apigw.yandexcloud.net
+paths:
+  /users:
+    post:
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4ein9mmjb874bk3dsvp
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+            example:
+              email: user@example.com
+      responses:
+        '201':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    format: uint64
+                    description: User identifier
+              example:
+                user_id: 1234567890
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+              example:
+                error: "Invalid or missing email"
+        '409':
+          description: A user with this email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+              example:
+                error: "User with email already exists"
+        '500':
+          description: Failed to create user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+              example:
+                error: "Failed to create user due to an internal error"
+    get:
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4ein9mmjb874bk3dsvp
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      summary: Retrieve a list of all users
+      responses:
+        '200':
+          description: Successfully retrieved users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user_id:
+                      type: integer
+                      format: uint64
+                      description: User identifier
+                    email:
+                      type: string
+                      format: email
+                      description: User's email address
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: When the user was created
+                    updated_at:
+                      type: string
+                      format: date-time
+                      description: When the user was last updated (nullable)
+              example:
+                - user_id: 1234567890
+                  email: user@example.com
+                  created_at: 2024-12-18T12:34:56Z
+                  updated_at: 2024-12-19T12:34:56Z
+        '500':
+          description: Failed to retrieve users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+              example:
+                error: "Failed to fetch users"
+  /users/{user_id}:
+    patch:
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4ein9mmjb874bk3dsvp
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      summary: Update user information
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the user to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: New email address
+              example:
+                email: updated_user@example.com
+      responses:
+        '200':
+          description: User successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "User successfully updated"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Invalid or missing fields"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "User not found"
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Email already exists"
+        '500':
+          description: Failed to update user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+  /tasks:
+    post:
+      summary: Create a new task
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4enn02ncgt8odkbf7oc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  format: uint64
+                  description: Identifier of the user creating the task
+                title:
+                  type: string
+                  description: Title of the task
+                description:
+                  type: string
+                  description: Optional detailed description of the task
+                attachment:
+                  type: object
+                  description: Optional file attachment for the task
+                  properties:
+                    base64:
+                      type: string
+                      description: Base64 encoded content of the attachment
+                    extension:
+                      type: string
+                      description: File extension of the attachment
+              example:
+                user_id: 12345
+                title: "Buy groceries"
+                description: "Milk, Bread, Eggs"
+                attachment:
+                  base64: "dGVzdCBjb250ZW50"
+                  extension: "txt"
+      responses:
+        '201':
+          description: Task successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  task_id:
+                    type: integer
+                    format: uint64
+                    description: Task identifier
+              example:
+                task_id: 12345
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Missing required fields"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "User with the given identifier not found"
+        '500':
+          description: Failed to create task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+  /tasks/users/{user_id}:
+    get:
+      summary: Retrieve all tasks for a specific user
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4enn02ncgt8odkbf7oc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: uint64
+          description: ID of the user to retrieve tasks for
+      responses:
+        '200':
+          description: Successfully retrieved tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    task_id:
+                      type: integer
+                      format: uint64
+                    user_id:
+                      type: integer
+                      format: uint64
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    attachment_url:
+                      type: string
+                      nullable: true
+                    is_completed:
+                      type: boolean
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+              example:
+                - task_id: 1
+                  user_id: 12345
+                  title: "Buy groceries"
+                  description: "Milk, Bread, Eggs"
+                  attachment_url: "https://example-bucket.s3.amazonaws.com/tasks/attachment.txt"
+                  is_completed: false
+                  created_at: "2024-12-18T12:34:56Z"
+                  updated_at: "2024-12-18T12:34:56Z"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "User with the given ID not found"
+        '500':
+          description: Failed to retrieve tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+  /tasks/{task_id}:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: uint64
+        description: ID of the task to retrieve, update, or delete
+    get:
+      summary: Retrieve task information by its ID
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4enn02ncgt8odkbf7oc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      responses:
+        '200':
+          description: Successfully retrieved task information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  task_id:
+                    type: integer
+                    format: uint64
+                  user_id:
+                    type: integer
+                    format: uint64
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  attachment_url:
+                    type: string
+                    nullable: true
+                  is_completed:
+                    type: boolean
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+              example:
+                task_id: 12345
+                user_id: 12345
+                title: "Buy groceries"
+                description: "Milk, Bread, Eggs"
+                attachment_url: "https://example-bucket.s3.amazonaws.com/tasks/attachment.txt"
+                is_completed: false
+                created_at: "2024-12-18T12:34:56Z"
+                updated_at: "2024-12-18T12:34:56Z"
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Task with the given ID not found"
+        '500':
+          description: Failed to retrieve task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+    patch:
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4enn02ncgt8odkbf7oc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      summary: Update task information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Updated title of the task
+                description:
+                  type: string
+                  description: Updated description of the task
+                attachment:
+                  type: object
+                  description: Updated file attachment for the task
+                  properties:
+                    base64:
+                      type: string
+                      description: Base64 encoded content of the attachment
+                    extension:
+                      type: string
+                      description: File extension of the attachment
+                is_completed:
+                  type: boolean
+                  description: Updated completion status of the task
+      responses:
+        '200':
+          description: Task successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+              example:
+                message: "Task successfully updated"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+              example:
+                error: "Invalid or missing fields"
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Task with ID not found"
+        '500':
+          description: Failed to update task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+    delete:
+      summary: Delete a task by its ID
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4enn02ncgt8odkbf7oc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      responses:
+        '200':
+          description: Task successfully deleted
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Task with ID not found"
+        '500':
+          description: Failed to delete task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+  /reminders:
+    post:
+      summary: Create a new reminder
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4ej1suopj3er787s8jc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  format: uint64
+                  description: User ID creating the reminder
+                title:
+                  type: string
+                  description: Title of the reminder
+                description:
+                  type: string
+                  nullable: true
+                  description: Optional description of the reminder
+                reminder_time:
+                  type: string
+                  format: date-time
+                  description: Time when the reminder is set
+              example:
+                user_id: 12345
+                title: "Doctor Appointment"
+                description: "Visit Dr. Smith at 10:30 AM"
+                reminder_time: "2024-12-19T10:30:00Z"
+      responses:
+        '201':
+          description: Reminder successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reminder_id:
+                    type: integer
+                    format: uint64
+                    description: Reminder identifier
+              example:
+                reminder_id: 1234567890
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Invalid fields or missing data"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+  /reminders/users/{user_id}:
+    get:
+      summary: Retrieve all reminders for a specific user
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4ej1suopj3er787s8jc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: uint64
+          description: ID of the user whose reminders are being retrieved
+      responses:
+        '200':
+          description: Successfully retrieved reminders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: uint64
+                    user_id:
+                      type: integer
+                      format: uint64
+                    title:
+                      type: string
+                    description:
+                      type: string
+                      nullable: true
+                    reminder_time:
+                      type: string
+                      format: date-time
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+              example:
+                - id: 1234567890
+                  user_id: 12345
+                  title: "Doctor Appointment"
+                  description: "Visit Dr. Smith at 10:30 AM"
+                  reminder_time: "2024-12-19T10:30:00Z"
+                  created_at: "2024-12-18T12:34:56Z"
+                  updated_at: "2024-12-18T12:34:56Z"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "User not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+  /reminders/{reminder_id}:
+    parameters:
+      - name: reminder_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: uint64
+        description: ID of the reminder
+    get:
+      summary: Retrieve reminder information by its ID
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4ej1suopj3er787s8jc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      responses:
+        '200':
+          description: Successfully retrieved reminder information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: uint64
+                  user_id:
+                    type: integer
+                    format: uint64
+                  title:
+                    type: string
+                  description:
+                    type: string
+                    nullable: true
+                  reminder_time:
+                    type: string
+                    format: date-time
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+              example:
+                id: 1234567890
+                user_id: 12345
+                title: "Doctor Appointment"
+                description: "Visit Dr. Smith at 10:30 AM"
+                reminder_time: "2024-12-19T10:30:00Z"
+                created_at: "2024-12-18T12:34:56Z"
+                updated_at: "2024-12-18T12:34:56Z"
+        '404':
+          description: Reminder not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Reminder not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+    patch:
+      summary: Update reminder information
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4ej1suopj3er787s8jc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Updated title of the reminder
+                description:
+                  type: string
+                  description: Updated description of the reminder
+                reminder_time:
+                  type: string
+                  format: date-time
+                  description: Updated time for the reminder
+              example:
+                title: "Updated Appointment"
+                description: "Visit Dr. Jones at 11:00 AM"
+                reminder_time: "2024-12-19T11:00:00Z"
+      responses:
+        '200':
+          description: Reminder successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "Reminder successfully updated"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Invalid fields"
+        '404':
+          description: Reminder not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Reminder not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
+    delete:
+      summary: Delete a reminder by its ID
+      x-yc-apigateway-integration:
+        payload_format_version: '1.0'
+        function_id: d4ej1suopj3er787s8jc
+        tag: $latest
+        type: cloud_functions
+        service_account_id: aje42bddkjj2fitv2k2s
+      responses:
+        '200':
+          description: Reminder successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "Reminder successfully deleted"
+        '404':
+          description: Reminder not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Reminder not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Internal server error"
